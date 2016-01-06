@@ -1,3 +1,4 @@
+#include "vbwt.h"
 #include "merge_sort.h"
 #include "string_compare.h"
 
@@ -32,6 +33,19 @@ int main(int argv, char **argc)
 	std::cout << "Sorted rotations = ";
 	for (int i = 0; i < rotations.size(); i++)
 		std::cout << rotations[i] << " ";
+
+
+	std::cout << std::endl;
+	std::cout << std::endl;
+	std::cout << "V-BWT of factorized string:" << std::endl;
+	std::cout << "\tgroup based on largest V-letter" << std::endl;
+
+	std::vector<std::string> vwords;
+	vwords.push_back("32");
+	vwords.push_back("3132");
+	vwords.push_back("412");
+
+	vbwt (vwords);
 
 	return 0;
 }
