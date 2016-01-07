@@ -57,6 +57,63 @@ std::unordered_map<char,std::vector<std::string>> group (std::vector<std::string
 	return groups;
 }
 
+
+/* longest_occurring_vword_length */
+int longest_occurring_vword_length (std::vector<std::string> vwords)
+{
+	int length = 0;
+
+	for (auto it = vwords.begin(); it != vwords.end(); it++)
+	{
+		std::string vword = *it;
+
+		if (length < vword.length())
+			length = vword.length();
+	}
+
+	return length;
+}
+
+/* homogenize */
+std::unordered_map<char,std::vector<std::string>> homogenize 
+	(std::unordered_map<char,std::vector<std::string>> groups)
+{
+	int g_length;
+	int v_length;
+	int add_length;
+
+	for(auto& g:groups)
+	{
+		g_length = longest_occurring_vword_length (g.second);
+		
+		for (auto it = g.second.begin(); 
+				it != g.second.end(); it++)
+		{
+			std::string vword = *it;
+
+			v_length = vword.length();
+			add_length = g_length - v_length;
+
+			if (add_length > 0)
+			{
+				int repeat = add_length / v_length;
+
+				std::string word;
+
+				for (int i = 0; i <= repeat; i++)
+					word += vword.substr(0, v_length);
+				
+				word = word.substr(word.length() - add_length, 
+							add_length);
+				
+				(*it) = word + vword;
+			}
+		}	
+	}
+
+	return groups;
+}
+
 std::string vbwt (std::vector<std::string> vwords)
 {
 	std::string vtransform;
@@ -64,6 +121,11 @@ std::string vbwt (std::vector<std::string> vwords)
 	std::unordered_map<char,std::vector<std::string>> groups;
 	groups = group (vwords);
 
+	print_groups (groups);
+
+	groups = homogenize (groups);
+
+	std::cout << std::endl;
 	print_groups (groups);
 
 	return vtransform;
