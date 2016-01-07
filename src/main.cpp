@@ -40,6 +40,7 @@ int main(int argv, char **argc)
 	std::cout << "V-BWT of factorized string:" << std::endl;
 	std::cout << "\tgroup based on largest V-letter" << std::endl;
 	std::cout << "\thomogenize" << std::endl;
+	std::cout << "\tconjugate" << std::endl;
 
 	std::vector<std::string> vwords;
 	vwords.push_back("32");

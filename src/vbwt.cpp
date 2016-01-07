@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <unordered_map>
+#include <unordered_set>
 
 /* print_groups */
 void print_groups (std::unordered_map<char,std::vector<std::string>> groups)
@@ -13,6 +14,25 @@ void print_groups (std::unordered_map<char,std::vector<std::string>> groups)
 		for (auto it = group.second.begin(); it != group.second.end(); it++)	
 			std::cout << " => " + *it << std::endl;
 	}	
+}
+
+/* print_conjugacy_classes */
+void print_conjugacy_classes 
+	(std::unordered_map<char,std::vector<std::unordered_set<std::string>>> conjugacy_classes)
+{
+	for(auto& conjugacy_class:conjugacy_classes)
+	{
+		std::cout << "group " << conjugacy_class.first << ":" << std::endl;
+		
+		for (auto it1 = conjugacy_class.second.begin(); 
+			it1 != conjugacy_class.second.end(); it1++)
+		{	
+			for (auto it2=(*it1).begin(); it2 != (*it1).end(); it2++)
+				std::cout << "  => " + *it2 << std::endl;
+
+			std::cout << std::endl;
+		}
+	}
 }
 
 /* largest_occurring_letter */
@@ -114,6 +134,63 @@ std::unordered_map<char,std::vector<std::string>> homogenize
 	return groups;
 }
 
+/* conjugacy_class */
+std::unordered_set<std::string> conjugacy_class (std::string vword)
+{
+	std::unordered_set<std::string> conjugacy_class;
+
+	conjugacy_class.insert(vword);
+
+	int start = 1;
+	int length = vword.length() - 1;
+
+	while (length)
+	{
+		std::string rvword = vword.substr(start, length) 
+			+ vword.substr(0, start);
+
+		conjugacy_class.insert (rvword);	
+
+		start++;
+		length--;
+	}	
+
+	return conjugacy_class;
+}
+
+/* conjugate */
+std::unordered_map<char,std::vector<std::unordered_set<std::string>>> 
+	conjugate (std::unordered_map<char,std::vector<std::string>> groups)
+{
+	std::unordered_map<char,std::vector<std::unordered_set<std::string>>> 
+		conjugacy_classes;
+
+	for(auto& g:groups)
+	{
+		for (auto it = g.second.begin(); 
+				it != g.second.end(); it++)
+		{	
+			std::unordered_set<std::string> c_class;
+			c_class = conjugacy_class ((*it));
+
+			std::unordered_map<char,std::vector<std::unordered_set<std::string>>>::iterator 
+				c_class_it;
+			c_class_it = conjugacy_classes.find(g.first);
+
+			if (c_class_it == conjugacy_classes.end())
+			{
+				std::vector<std::unordered_set<std::string>> lc_class;
+				lc_class.push_back(c_class);
+				conjugacy_classes.insert({g.first, lc_class});
+			}
+			else
+				c_class_it->second.push_back(c_class);
+		}
+	}
+
+	return conjugacy_classes;
+}
+
 std::string vbwt (std::vector<std::string> vwords)
 {
 	std::string vtransform;
@@ -127,6 +204,13 @@ std::string vbwt (std::vector<std::string> vwords)
 
 	std::cout << std::endl;
 	print_groups (groups);
+
+	std::unordered_map<char,std::vector<std::unordered_set<std::string>>> 
+		conjugacy_classes;
+	conjugacy_classes = conjugate (groups);
+
+	std::cout << std::endl;
+	print_conjugacy_classes (conjugacy_classes);
 
 	return vtransform;
 }
