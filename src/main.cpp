@@ -41,13 +41,14 @@ int main(int argv, char **argc)
 	std::cout << "\tgroup based on largest V-letter" << std::endl;
 	std::cout << "\thomogenize" << std::endl;
 	std::cout << "\tconjugate" << std::endl;
+	std::cout << "\tmerge sort on group" << std::endl;
 
 	std::vector<std::string> vwords;
 	vwords.push_back("32");
 	vwords.push_back("3132");
 	vwords.push_back("412");
 
-	vbwt (vwords);
+	std::cout << "V-transform = " << vbwt (vwords) << std::endl;
 
 	return 0;
 }

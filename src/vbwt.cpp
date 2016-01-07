@@ -1,8 +1,11 @@
 #include "vbwt.h"
+#include "merge_sort.h"
 
 #include <iostream>
 #include <unordered_map>
 #include <unordered_set>
+
+#include <algorithm>
 
 /* print_groups */
 void print_groups (std::unordered_map<char,std::vector<std::string>> groups)
@@ -48,7 +51,8 @@ char largest_occurring_letter (std::string vword)
 }
 
 /* group */
-std::unordered_map<char,std::vector<std::string>> group (std::vector<std::string> vwords)
+std::unordered_map<char,std::vector<std::string>> group 
+	(std::vector<std::string> vwords, std::vector<char> *group_order)
 {
 	std::unordered_map<char,std::vector<std::string>> groups;
 
@@ -60,7 +64,7 @@ std::unordered_map<char,std::vector<std::string>> group (std::vector<std::string
 			continue;
 
 		char group_name = largest_occurring_letter (vword);
-
+	
 		std::unordered_map<char,std::vector<std::string>>::iterator groups_it;
 		groups_it = groups.find(group_name);
 
@@ -69,6 +73,7 @@ std::unordered_map<char,std::vector<std::string>> group (std::vector<std::string
 			std::vector<std::string> group;
 			group.push_back(vword);
 			groups.insert({group_name, group});
+			(*group_order).push_back(group_name);
 		}
 		else
 			groups_it->second.push_back(vword);			
@@ -191,12 +196,32 @@ std::unordered_map<char,std::vector<std::unordered_set<std::string>>>
 	return conjugacy_classes;
 }
 
+/* group_merge_sort */
+std::vector<std::string> group_merge_sort 
+	(std::vector<std::unordered_set<std::string>> conjugacy_classes)
+{
+	std::vector<std::string> rotations;
+		
+	for (auto it1 = conjugacy_classes.begin(); 
+		it1 != conjugacy_classes.end(); it1++)
+	{
+		for (auto it2=(*it1).begin(); it2 != (*it1).end(); it2++)
+			rotations.push_back((*it2));
+	}
+
+	MergeSort merge_sort;
+	rotations = merge_sort.sort(rotations);
+
+	return rotations;
+}
+
 std::string vbwt (std::vector<std::string> vwords)
 {
 	std::string vtransform;
-
+	
+	std::vector<char> group_order;
 	std::unordered_map<char,std::vector<std::string>> groups;
-	groups = group (vwords);
+	groups = group (vwords, &group_order);
 
 	print_groups (groups);
 
@@ -211,6 +236,21 @@ std::string vbwt (std::vector<std::string> vwords)
 
 	std::cout << std::endl;
 	print_conjugacy_classes (conjugacy_classes);
+	
+	for (int i = 0; i < group_order.size(); i++)
+	{
+		std::vector<std::string> rotations = 
+			group_merge_sort(conjugacy_classes[group_order[i]]);
+
+		std::cout << "group " << group_order[i] << ":" << std::endl;
+		for (int j=0; j != rotations.size(); j++)
+		{
+			std::cout << " => " + rotations[j] << std::endl;
+
+			vtransform.push_back(rotations[j].back());
+		}
+		std::cout << std::endl;
+	}
 
 	return vtransform;
 }
