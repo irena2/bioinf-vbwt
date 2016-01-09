@@ -22,6 +22,6 @@ $(BUILDDIR)%.o: $(SRCDIR)%.cpp
 clean:
 	rm -f $(OBJECTS)
 	rm -f $(BINDIR)$(EXEC)
-	rmdir $(BINDIR)
-	rmdir $(BUILDDIR)
+	rm -f -r $(BINDIR)
+	rm -f -r $(BUILDDIR)
 
