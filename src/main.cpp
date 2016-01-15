@@ -1,54 +1,71 @@
+#include "inout.h"
 #include "vbwt.h"
-#include "merge_sort.h"
-#include "string_compare.h"
 
+#include <assert.h>
+#include <time.h>
+
+#include <cstdlib>
 #include <iostream>
 #include <vector>
 
-int main(int argv, char **argc)
+double overallExecutionTimeVBWT(std::string input)
 {
-	std::cout << "Compare 3132 < 3232 using V-order" << std::endl;
-	std::cout << "Result = " << compare ("3132", "3232") << std::endl;
+	clock_t start = clock();
 
-	std::cout << std::endl;
-	std::cout << "Merge sort rotations using V-order string comparison" << std::endl;
+  	//vbwt(input);
 
-	std::vector<std::string> rotations;	
-	rotations.push_back("5312543");	
-	rotations.push_back("3125435");
-	rotations.push_back("1254353");
-	rotations.push_back("2543531");
-	rotations.push_back("5435312");
-	rotations.push_back("4353125");
-	rotations.push_back("3531254");
+	clock_t stop = clock();
 
-	std::cout << "Rotations = ";
-	for (int i = 0; i < rotations.size(); i++)
-		std::cout << rotations[i] << " ";
-	
-	MergeSort merge;
-	rotations = merge.sort(rotations);
+	double elapsed = double (stop - start) / CLOCKS_PER_SEC;
 
-	std::cout << std::endl;
-	std::cout << "Sorted rotations = ";
-	for (int i = 0; i < rotations.size(); i++)
-		std::cout << rotations[i] << " ";
+	printf("Time taken: %.2fs\n", elapsed);
 
+	return elapsed;
+}
 
-	std::cout << std::endl;
-	std::cout << std::endl;
-	std::cout << "V-BWT of factorized string:" << std::endl;
-	std::cout << "\tgroup based on largest V-letter" << std::endl;
-	std::cout << "\thomogenize" << std::endl;
-	std::cout << "\tconjugate" << std::endl;
-	std::cout << "\tmerge sort on group" << std::endl;
+double overallExecutionTimeBWT(std::string input)
+{
+	clock_t start = clock();
 
-	std::vector<std::string> vwords;
-	vwords.push_back("32");
-	vwords.push_back("3132");
-	vwords.push_back("412");
+  	//bwt(input);
 
-	std::cout << "V-transform = " << vbwt (vwords) << std::endl;
+	clock_t stop = clock();
+
+	double elapsed = double (stop - start) / CLOCKS_PER_SEC;
+
+	printf("Time taken: %.2fs\n", elapsed);
+
+	return elapsed;
+
+}
+
+int main(int argc, char **argv)
+{
+	if (argc < 4)
+	{
+		std::cout << "Usage: " << argv[0] << " <input> <output> <bwt|vbwt>" << std::endl;
+
+		return (-1); 
+	}
+
+	std::string mode(argv[3]);
+
+	if (mode == "bwt")
+	{
+		std::vector<std::string> v = read_fasta (argv[1]);
+		
+		for (int i = 0; i < v.size(); i++)
+			overallExecutionTimeBWT(v[i]);	
+	}
+	else if (mode == "vbwt")
+	{	
+		std::vector<std::string> v = read_fasta (argv[1]);
+		
+		for (int i = 0; i < v.size(); i++)
+			overallExecutionTimeVBWT(v[i]);
+	}
+	else
+		std::cout << "Invalid mode. Use bwt or vbwt" << std::endl;
 
 	return 0;
 }

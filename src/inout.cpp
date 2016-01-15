@@ -1,7 +1,7 @@
 #include "inout.h"
 
-// reads sequences from FASTA formatted files
-// 	discards descriptions (lines starting with '>')
+// Reads sequences from FASTA formatted files
+// discarding descriptions (lines starting with '>')
 std::vector<std::string> read_fasta (const char *filename)
 {
 	std::ifstream file;
@@ -35,7 +35,7 @@ std::vector<std::string> read_fasta (const char *filename)
   return sequences;
 }
 
-// writes the given string to file
+// Writes the given string to file
 void write_to_file(const char *filename, std::string to_write)
 {
 	std::ofstream file;

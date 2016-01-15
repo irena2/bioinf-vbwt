@@ -1,98 +1,123 @@
 #include "string_compare.h"
 
-#include <iostream>
 #include <vector>
 
-#define MAX_LETTER "z"
+#define MAX_LETTER ('z')	// sentinel letter
 
-int del (std::string *x, int *i)
+struct node_t
 {
-	if ((*x).length() <= *i)
-		*i = (*x).length() - 1;
+	char value;
+	int left;
+	int right;
+};
+
+// Prepares x for processing by
+// breaking x into vector of node_t
+std::vector<node_t> preprocess(std::string x, int length)
+{
+	x = MAX_LETTER + x + MAX_LETTER;
+
+	std::vector<node_t> nodes;
+
+	for (int i = 0; i <= length + 1; i++)
+		nodes.push_back({x[i], i-1, i+1});
 	
-	int delta = *i;
-
-	while (delta > 0 && (*x)[delta] >= (*x)[delta - 1])
-		delta--;
-	
-	if (delta != 0)	
-		(*x).erase(delta, 1);
-
-	*i = delta + 1;
-
-	return delta;
+	return nodes;
 }
 
-int reduce (std::string *x, int n)
+// Deletes letter in string x
+std::pair<int,int> del (std::vector<node_t>& x, int i)
 {
-	int i = (*x).length() - 1;
+	int prev = x[i].left;
 
-	for (int j = 1; j <= n; j++)
-		del (x, &i);
-
-	return i;
-}
-
-std::vector<int> LMS (std::string x1, int l1, std::string x2, int l2)
-{
-	std::vector<int> l;
-
-	int i1 = l1 - 1;
-	int i2 = l2 - 1;
-
-	while (x1[i1] == x2[i2] && i1 > 0)
+	while (x[i].value >= x[prev].value)
 	{
-		i1--;
-		i2--;
+		i = prev;
+		prev = x[i].left;
 	}
 
-	l.push_back(i1 + 1);
-	l.push_back(i2 + 1);
+	int d = i;
+	i = x[d].right;
 
-	return l;
+	x[i].left = prev;
+	x[prev].right = i;
+
+	return std::make_pair(d, i);
 }
 
-bool compare (std::string x1, std::string x2)
+// Reduces string x2 to be the same size as x1
+std::pair<int,int> reduce (std::vector<node_t>& x2, int length2, int length1)
 {
-	//x1 > x2
+	std::pair<int,int> d = std::make_pair(0, length2 + 1);
+
+	for (int i = 1; i <= length2 - length1; i++)
+		d = del (x2, d.second);
+
+	return d;
+}
+
+// Calculates longest matching suffix
+std::pair<int,int> LMS (std::vector<node_t>& x1, int l1, std::vector<node_t>& x2, int l2)
+{
+	int i1 = x1[l1].left;
+	int i2 = x2[l2].left;
+
+	while (i1 > 0 && x1[i1].value == x2[i2].value)
+	{
+		i1 = x1[i1].left;
+		i2 = x2[i2].left;
+	}
+
+	return std::make_pair(x1[i1].right, x2[i2].right);
+}
+
+// Compares two input strings
+// Algorithm from 'Daykin et al 2013 - A linear partitioning algorithm for
+// Hybrid Lyndons using V-order.'
+bool compare(std::string x1, std::string x2)
+{
 	int n1 = x1.length();
 	int n2 = x2.length();
 
-	x1 = MAX_LETTER + x1 + MAX_LETTER;
-	x2 = MAX_LETTER + x2 + MAX_LETTER;
+	if (n1 > n2)
+		return !compare(x2, x1);
 
-	int i1 = n1 + 1;
-	int i2 = reduce (&x2, n2 - n1);
+	if (x1 == x2)
+		return false;
 
-	n2 = n1;	
+	std::vector<node_t> v_x1 = preprocess(x1, n1);
+	std::vector<node_t> v_x2 = preprocess(x2, n2);
 
-	std::vector<int> l = LMS (x1, n1 + 1, x2, n2 + 1);
+	std::pair<int,int> d2 = reduce (v_x2, n2, n1);
 
-	if (l[0] - 1 == 0)
+	std::pair<int,int> l = LMS (v_x1, n1 + 1, v_x2, n2 + 1);
+
+	if (v_x1[l.first].left == 0)
 		return true;
 
-	std::string child1, child2;
-	int delta, delta1, delta2;
-	
+	std::pair<int,int> d1 = std::make_pair(0, n1 + 1);
+
+	int remember1, remember2;
 	do
 	{
-		child1 = x1;
-		child2 =x2;
+		// Different from pseudocode,
+		// used for memorizing the rightest position
+		// in x1 and x2, where x1 and x2 differ
+		remember1 = v_x1[l.first].left;		
+		remember2 = v_x2[l.second].left;
 
-		delta1 = del (&x1, &i1);
-		delta2 = del (&x2, &i2);
+		d1 = del (v_x1, d1.second);
+		d2 = del (v_x2, d2.second);
 
-		if (delta1 < delta2)
-			delta = delta2;
-		else
-			delta = delta1;
+		if (d1.first == l.first || d2.first == l.second)
+		{
+			l.first = v_x1[l.first].right;
+			l.second = v_x2[l.second].right;
+		}
+		else if (d1.second == l.first || d2.second == l.second)
+			l = LMS (v_x1, l.first, v_x2, l.second);		
 
-		l = LMS (x1, l[0], x2, l[1]);		
+	} while (v_x1[l.first].left != 0);
 
-	} while (l[0] - 1 != 0);
-
-	if (child1[delta] < child2[delta])
-		return true;
-	else
-		return false;
+	return (v_x1[remember1].value < v_x2[remember2].value);
 }
