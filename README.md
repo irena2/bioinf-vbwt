@@ -7,7 +7,7 @@ For computing V-BWT we, firstly, factorize input string (given in FASTA format) 
 ##Usage
 ```
 make all
-./bin/all <input> <output> <bwt|vbwt>
+./bin/all <input> <output> <bwt|vbwt|vword>
 
 make clean
 ```

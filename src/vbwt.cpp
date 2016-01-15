@@ -91,7 +91,7 @@ std::string vbwt_vword(std::string vword)
 
 	// the last column of R< is the V-transform	
 	for (int i = 0; i < rotations.size(); i++)
-		vtransform.push_back(rotations[i].back());
+		vtransform += rotations[i].back();
 
 	return vtransform;
 }
@@ -109,9 +109,6 @@ std::string vbwt(std::string x)
 	// function vbwt_vword
 	/*if (vwords.size() == 1)
 		return vbwt_vword(vwords[0]);*/
-
-	/*for (int i = 0; i < r.size(); i++)
-		std::cout << r[i] << std::endl;*/
 
 	int i, j;
 	// Process V-words in reverse order
@@ -154,7 +151,7 @@ std::string vbwt(std::string x)
 
 		for (int k = 0; k < members.size(); k++)
 		{
-			int n;
+			int n;	
 
 			if (members_g_count[k] != max_g_count)
 			{
@@ -162,8 +159,8 @@ std::string vbwt(std::string x)
 				members[k] = homogenize (members[k], max_g_count - members_g_count[k]);
 			}
 			else
-				n = members[k].size();
-			
+				n = members[k].size();		
+
 			rotations = rotate(members[k], n);
 
 			// Use sort function instead of suffix-sort to sort
@@ -176,6 +173,7 @@ std::string vbwt(std::string x)
 				merged_rotations.push_back(rotations[l]);
 		}
 
+	
 		// Merge sort all rotations of one group
 		/*MergeSort merge;
 		merged_rotations = merge.sort (merged_rotations);*/	
@@ -183,7 +181,7 @@ std::string vbwt(std::string x)
 
 		// Add last letter of merged rotations to vtransform
 		for (int k = 0; k < merged_rotations.size(); k++)
-				vtransform.push_back(merged_rotations[k].back());
+				vtransform += merged_rotations[k].back();
 
 		// Skip processed V-words and go to next group
 		i = j + 1;

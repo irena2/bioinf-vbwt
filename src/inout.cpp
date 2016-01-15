@@ -1,5 +1,6 @@
 #include "inout.h"
 
+#include <algorithm>
 // Reads sequences from FASTA formatted files
 // discarding descriptions (lines starting with '>')
 std::vector<std::string> read_fasta (const char *filename)
@@ -23,8 +24,11 @@ std::vector<std::string> read_fasta (const char *filename)
       			
 			sequence = "";
     		}
-    		else 
-      			sequence += line;
+    		else
+		{
+			line.erase(remove(line.begin(), line.end(), '\n'), line.end());
+			sequence += line;
+		}
  	}
 
 	if (sequence.size() > 0)
