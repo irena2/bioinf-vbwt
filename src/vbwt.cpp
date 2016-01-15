@@ -107,8 +107,8 @@ std::string vbwt(std::string x)
 
 	// If there is only one V-word call simpler
 	// function vbwt_vword
-	if (vwords.size() == 1)
-		return vbwt_vword(vwords[0]);
+	/*if (vwords.size() == 1)
+		return vbwt_vword(vwords[0]);*/
 
 	/*for (int i = 0; i < r.size(); i++)
 		std::cout << r[i] << std::endl;*/
