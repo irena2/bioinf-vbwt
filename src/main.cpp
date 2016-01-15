@@ -1,6 +1,6 @@
 #include "inout.h"
 #include "vbwt.h"
-//#include "bwt.h"
+#include "bwt.h"
 
 #include <assert.h>
 #include <time.h>
@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 		{
 			clock_t start = clock();
 
-  			output /*+= bwt(input[i]) + '\n'*/;
+  			output += bwt(input[i]) + '\n';
 
 			clock_t stop = clock();
 

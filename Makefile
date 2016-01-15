@@ -4,7 +4,7 @@ SRCDIR = src/
 TESTDIR = test/
 
 CC = g++
-CFLAGS = -std=c++11 -I include/
+CFLAGS = -std=c++11 -O3 -I include/
 
 EXEC = all
 SOURCES = $(wildcard $(SRCDIR)*.cpp)
