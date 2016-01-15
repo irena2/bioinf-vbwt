@@ -4,6 +4,6 @@
 #include <string>
 #include <vector>
 
-std::string vbwt (std::vector<std::string> vwords);
+std::string vbwt (std::string x);
 
 #endif

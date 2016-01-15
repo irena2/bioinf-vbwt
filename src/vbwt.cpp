@@ -1,255 +1,192 @@
 #include "vbwt.h"
+#include "string_factorize.h"
 #include "merge_sort.h"
-
-#include <iostream>
-#include <unordered_map>
-#include <unordered_set>
+#include "string_compare.h"
 
 #include <algorithm>
+#include <iostream>
 
-/* print_groups */
-void print_groups (std::unordered_map<char,std::vector<std::string>> groups)
+// Rotates given V-word n times
+std::vector<std::string> rotate(std::string vword, int n)
 {
-	for(auto& group:groups)
-	{
-		std::cout << "group " << group.first << ":" << std::endl;
-		
-		for (auto it = group.second.begin(); it != group.second.end(); it++)	
-			std::cout << " => " + *it << std::endl;
-	}	
-}
-
-/* print_conjugacy_classes */
-void print_conjugacy_classes 
-	(std::unordered_map<char,std::vector<std::unordered_set<std::string>>> conjugacy_classes)
-{
-	for(auto& conjugacy_class:conjugacy_classes)
-	{
-		std::cout << "group " << conjugacy_class.first << ":" << std::endl;
-		
-		for (auto it1 = conjugacy_class.second.begin(); 
-			it1 != conjugacy_class.second.end(); it1++)
-		{	
-			for (auto it2=(*it1).begin(); it2 != (*it1).end(); it2++)
-				std::cout << "  => " + *it2 << std::endl;
-
-			std::cout << std::endl;
-		}
-	}
-}
-
-/* largest_occurring_letter */
-char largest_occurring_letter (std::string vword)
-{	
-	char letter = vword[0];
-
-	for (int i = 1; i != vword.length(); i++)
-		if (letter < vword[i])
-			letter = vword[i];	
-
-	return letter;
-}
-
-/* group */
-std::unordered_map<char,std::vector<std::string>> group 
-	(std::vector<std::string> vwords, std::vector<char> *group_order)
-{
-	std::unordered_map<char,std::vector<std::string>> groups;
-
-	for (auto it = vwords.rbegin(); it != vwords.rend(); it++)
-	{
-		std::string vword = *it;
-
-		if (vword.empty() == true)
-			continue;
-
-		char group_name = largest_occurring_letter (vword);
-	
-		std::unordered_map<char,std::vector<std::string>>::iterator groups_it;
-		groups_it = groups.find(group_name);
-
-		if (groups_it == groups.end())
-		{
-			std::vector<std::string> group;
-			group.push_back(vword);
-			groups.insert({group_name, group});
-			(*group_order).push_back(group_name);
-		}
-		else
-			groups_it->second.push_back(vword);			
-	}
-
-	return groups;
-}
-
-
-/* longest_occurring_vword_length */
-int longest_occurring_vword_length (std::vector<std::string> vwords)
-{
-	int length = 0;
-
-	for (auto it = vwords.begin(); it != vwords.end(); it++)
-	{
-		std::string vword = *it;
-
-		if (length < vword.length())
-			length = vword.length();
-	}
-
-	return length;
-}
-
-/* homogenize */
-std::unordered_map<char,std::vector<std::string>> homogenize 
-	(std::unordered_map<char,std::vector<std::string>> groups)
-{
-	int g_length;
-	int v_length;
-	int add_length;
-
-	for(auto& g:groups)
-	{
-		g_length = longest_occurring_vword_length (g.second);
-		
-		for (auto it = g.second.begin(); 
-				it != g.second.end(); it++)
-		{
-			std::string vword = *it;
-
-			v_length = vword.length();
-			add_length = g_length - v_length;
-
-			if (add_length > 0)
-			{
-				int repeat = add_length / v_length;
-
-				std::string word;
-
-				for (int i = 0; i <= repeat; i++)
-					word += vword.substr(0, v_length);
-				
-				word = word.substr(word.length() - add_length, 
-							add_length);
-				
-				(*it) = word + vword;
-			}
-		}	
-	}
-
-	return groups;
-}
-
-/* conjugacy_class */
-std::unordered_set<std::string> conjugacy_class (std::string vword)
-{
-	std::unordered_set<std::string> conjugacy_class;
-
-	conjugacy_class.insert(vword);
+	std::vector<std::string> rotations;
 
 	int start = 1;
-	int length = vword.length() - 1;
+	int length = vword.length() - 1;	
 
-	while (length)
+	rotations.push_back(vword);
+
+	while (length && ((n - 1) != 0))
 	{
 		std::string rvword = vword.substr(start, length) 
 			+ vword.substr(0, start);
 
-		conjugacy_class.insert (rvword);	
+		rotations.push_back(rvword);	
 
-		start++;
-		length--;
-	}	
-
-	return conjugacy_class;
-}
-
-/* conjugate */
-std::unordered_map<char,std::vector<std::unordered_set<std::string>>> 
-	conjugate (std::unordered_map<char,std::vector<std::string>> groups)
-{
-	std::unordered_map<char,std::vector<std::unordered_set<std::string>>> 
-		conjugacy_classes;
-
-	for(auto& g:groups)
-	{
-		for (auto it = g.second.begin(); 
-				it != g.second.end(); it++)
-		{	
-			std::unordered_set<std::string> c_class;
-			c_class = conjugacy_class ((*it));
-
-			std::unordered_map<char,std::vector<std::unordered_set<std::string>>>::iterator 
-				c_class_it;
-			c_class_it = conjugacy_classes.find(g.first);
-
-			if (c_class_it == conjugacy_classes.end())
-			{
-				std::vector<std::unordered_set<std::string>> lc_class;
-				lc_class.push_back(c_class);
-				conjugacy_classes.insert({g.first, lc_class});
-			}
-			else
-				c_class_it->second.push_back(c_class);
-		}
-	}
-
-	return conjugacy_classes;
-}
-
-/* group_merge_sort */
-std::vector<std::string> group_merge_sort 
-	(std::vector<std::unordered_set<std::string>> conjugacy_classes)
-{
-	std::vector<std::string> rotations;
+		start++; length--;
 		
-	for (auto it1 = conjugacy_classes.begin(); 
-		it1 != conjugacy_classes.end(); it1++)
-	{
-		for (auto it2=(*it1).begin(); it2 != (*it1).end(); it2++)
-			rotations.push_back((*it2));
-	}
-
-	MergeSort merge_sort;
-	rotations = merge_sort.sort(rotations);
+		n--;
+	}	
 
 	return rotations;
 }
 
-std::string vbwt (std::vector<std::string> vwords)
+// Calculates maximal letter in a given V-word
+char max_letter (std::string vword) 
+{	
+	return vword[0];
+}
+
+// Calculates number of maximal letters
+// in a given V-word
+int max_letter_count (std::string vword)
 {
-	std::string vtransform;
-	
-	std::vector<char> group_order;
-	std::unordered_map<char,std::vector<std::string>> groups;
-	groups = group (vwords, &group_order);
+	char g = vword[0];
+	int g_counter = 0;
 
-	print_groups (groups);
+	for (int i = 0, n = vword.length(); i < n; i++)
+		if (vword[i] == g)
+			g_counter++;
 
-	groups = homogenize (groups);
+	return g_counter;
+}
 
-	std::cout << std::endl;
-	print_groups (groups);
+// Homogenizes V-word by adding substrings starting with
+// g to its end repeat number of times
+std::string homogenize (std::string vword, int repeat)
+{
+	int i, j;
+	char g = max_letter(vword);
 
-	std::unordered_map<char,std::vector<std::unordered_set<std::string>>> 
-		conjugacy_classes;
-	conjugacy_classes = conjugate (groups);
+	int last_g = 0;
 
-	std::cout << std::endl;
-	print_conjugacy_classes (conjugacy_classes);
-	
-	for (int i = 0; i < group_order.size(); i++)
+	for (i = 0; i < repeat; i++)
 	{
-		std::vector<std::string> rotations = 
-			group_merge_sort(conjugacy_classes[group_order[i]]);
+		for (j = last_g + 1; j < vword.size(); j++)
+			if (vword[j] == g)
+				break;
 
-		std::cout << "group " << group_order[i] << ":" << std::endl;
-		for (int j=0; j != rotations.size(); j++)
+		vword += vword.substr(last_g, j - last_g);
+		
+		last_g = j;
+	}
+
+	return vword;
+}
+
+// Calculates V-transform for input known to be a vword
+std::string vbwt_vword(std::string vword)
+{
+	std::string vtransform = "";
+
+	// Calculate R
+	// that contains all cyclic rotations of an input string 
+	// as an n x n matrix
+	std::vector<std::string> rotations = rotate(vword, vword.length());
+	
+	// Calculate R<
+	// that contains all the rows of R sorted into increasing V-order
+	// using linear-time V-order comparison
+	sort(rotations.begin(), rotations.end(), compare);
+
+	// the last column of R< is the V-transform	
+	for (int i = 0; i < rotations.size(); i++)
+		vtransform.push_back(rotations[i].back());
+
+	return vtransform;
+}
+
+std::string vbwt(std::string x)
+{
+	std::string vtransform = "";
+
+	// Factorize input string into V-words
+	// with linear partitioning algorithm
+	// for Hybrid Lyndons using V-order
+	std::vector<std::string> vwords = factorize(x);
+
+	// If there is only one V-word call simpler
+	// function vbwt_vword
+	if (vwords.size() == 1)
+		return vbwt_vword(vwords[0]);
+
+	/*for (int i = 0; i < r.size(); i++)
+		std::cout << r[i] << std::endl;*/
+
+	int i, j;
+	// Process V-words in reverse order
+	// from right to left
+	for (i = vwords.size() - 1; i >= 0 ; i--)
+	{
+		// Get maximal letter in a vword
+		char g = max_letter(vwords[i]);
+		
+		// Find other group members (can be only right after current V-word
+		// in reverse order) and remember how many maximal letters
+		// they have for homogenization and how many they should have
+		std::vector<std::string> members;
+		std::vector<int> members_g_count;
+
+		// Process current V-word
+		members.push_back(vwords[i]);
+		members_g_count.push_back (max_letter_count(vwords[i]));
+		int max_g_count = max_letter_count(vwords[i]);
+
+		// Process other V-words in a group
+		for (j = i - 1; j >= 0 && max_letter(vwords[j]) == g; j--)
 		{
-			std::cout << " => " + rotations[j] << std::endl;
+			members.push_back(vwords[j]);
 
-			vtransform.push_back(rotations[j].back());
+			int g_count = max_letter_count(vwords[j]);
+			members_g_count.push_back (g_count);
+
+			if (max_g_count < g_count)
+				max_g_count = g_count;
 		}
-		std::cout << std::endl;
+
+		// Homogenize V-words to have the same number of letter g as the V-word in
+		// a group which has the most and get sorted rotations
+		// (watch out for rotations number when homogenized! - homogenize first, but
+		// rotate it only - vword.length() before homogenization - times)
+		// Or, if homogenization is not needed, just get sorted rotations
+		std::vector<std::string> rotations;
+		std::vector<std::string> merged_rotations;
+
+		for (int k = 0; k < members.size(); k++)
+		{
+			int n;
+
+			if (members_g_count[k] != max_g_count)
+			{
+				n = members[k].size();
+				members[k] = homogenize (members[k], max_g_count - members_g_count[k]);
+			}
+			else
+				n = members[k].size();
+			
+			rotations = rotate(members[k], n);
+
+			// Use sort function instead of suffix-sort to sort
+			// rotations of a V-word
+			sort(rotations.begin(), rotations.end(), compare);
+				
+			// Add every rotation in a group to a vector
+			// so all rotations of one group can be merge sorted
+			for (int l = 0; l < rotations.size(); l++)
+				merged_rotations.push_back(rotations[l]);
+		}
+
+		// Merge sort all rotations of one group
+		/*MergeSort merge;
+		merged_rotations = merge.sort (merged_rotations);*/	
+		sort(merged_rotations.begin(), merged_rotations.end(), compare);
+
+		// Add last letter of merged rotations to vtransform
+		for (int k = 0; k < merged_rotations.size(); k++)
+				vtransform.push_back(merged_rotations[k].back());
+
+		// Skip processed V-words and go to next group
+		i = j + 1;
 	}
 
 	return vtransform;
